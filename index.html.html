@@ -1,0 +1,751 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<title>CrewAgenda</title>
+<style>
+  :root {
+    --accent: #185FA5;
+    --accent-bg: #E6F1FB;
+    --accent-border: #B5D4F4;
+    --success: #0F6E56;
+    --success-bg: #E1F5EE;
+    --warning: #BA7517;
+    --warning-bg: #FAEEDA;
+    --warning-border: #FAC775;
+    --danger: #A32D2D;
+    --danger-bg: #FCEBEB;
+    --surface: #ffffff;
+    --surface1: #f5f5f3;
+    --surface2: #eeede9;
+    --border: rgba(0,0,0,0.1);
+    --border-strong: rgba(0,0,0,0.18);
+    --text: #1a1a18;
+    --text2: #5f5e5a;
+    --text3: #888780;
+    --radius: 8px;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --accent: #378ADD;
+      --accent-bg: #0c2540;
+      --accent-border: #0c447c;
+      --success: #1D9E75;
+      --success-bg: #04342c;
+      --warning: #EF9F27;
+      --warning-bg: #412402;
+      --warning-border: #633806;
+      --danger: #E24B4A;
+      --danger-bg: #501313;
+      --surface: #1e1e1c;
+      --surface1: #262624;
+      --surface2: #2c2c2a;
+      --border: rgba(255,255,255,0.1);
+      --border-strong: rgba(255,255,255,0.18);
+      --text: #f0efeb;
+      --text2: #b4b2a9;
+      --text3: #888780;
+    }
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; font-size: 15px; background: var(--surface1); color: var(--text); min-height: 100vh; }
+  
+  /* Header */
+  .header { background: var(--surface); border-bottom: 0.5px solid var(--border); padding: 12px 16px; display: flex; align-items: center; gap: 10px; position: sticky; top: 0; z-index: 100; }
+  .header-logo { width: 32px; height: 32px; background: var(--accent-bg); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 18px; }
+  .header-title { font-size: 16px; font-weight: 600; color: var(--text); }
+  .header-sub { font-size: 11px; color: var(--text3); }
+  .offline-badge { margin-left: auto; font-size: 10px; font-weight: 500; background: var(--success-bg); color: var(--success); padding: 3px 8px; border-radius: 4px; }
+
+  /* Nav */
+  .nav { display: flex; background: var(--surface); border-bottom: 0.5px solid var(--border); overflow-x: auto; position: sticky; top: 57px; z-index: 99; }
+  .nav::-webkit-scrollbar { display: none; }
+  .nav-btn { flex-shrink: 0; padding: 10px 14px; font-size: 11px; font-weight: 500; background: transparent; border: none; cursor: pointer; color: var(--text3); text-align: center; border-bottom: 2px solid transparent; white-space: nowrap; }
+  .nav-btn.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+  /* Pages */
+  .page { display: none; padding: 16px; max-width: 520px; margin: 0 auto; }
+  .page.active { display: block; }
+
+  /* Cards */
+  .card { background: var(--surface); border: 0.5px solid var(--border); border-radius: 12px; padding: 14px 16px; margin-bottom: 12px; }
+  .card-title { font-size: 13px; font-weight: 600; color: var(--text); margin-bottom: 12px; display: flex; align-items: center; gap: 7px; }
+  .card-title .icon { font-size: 15px; }
+
+  /* Quote */
+  .quote-banner { border-left: 3px solid var(--accent); background: var(--accent-bg); border-radius: 0 10px 10px 0; padding: 10px 14px; margin-bottom: 12px; }
+  .quote-text { font-size: 13px; color: var(--accent); line-height: 1.5; font-style: italic; }
+
+  /* Fields */
+  .field { margin-bottom: 10px; }
+  .field label { display: block; font-size: 11px; font-weight: 600; color: var(--text3); margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.04em; }
+  input, textarea, select {
+    width: 100%; padding: 9px 11px; border: 0.5px solid var(--border-strong); border-radius: var(--radius);
+    background: var(--surface1); color: var(--text); font-size: 14px; font-family: inherit;
+    outline: none; appearance: none; -webkit-appearance: none;
+  }
+  input:focus, textarea:focus, select:focus { border-color: var(--accent); }
+  textarea { min-height: 70px; resize: vertical; line-height: 1.5; }
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .grid3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
+  .grid4 { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 8px; }
+
+  /* Sector tabs */
+  .sector-tabs { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 4px; margin-bottom: 12px; }
+  .sector-tabs::-webkit-scrollbar { display: none; }
+  .stab { flex-shrink: 0; padding: 7px 12px; font-size: 12px; font-weight: 500; background: var(--surface1); border: 0.5px solid var(--border-strong); border-radius: var(--radius); cursor: pointer; color: var(--text2); display: flex; align-items: center; gap: 5px; }
+  .stab.active { background: var(--accent-bg); border-color: var(--accent-border); color: var(--accent); }
+  .stab .rm { background: none; border: none; cursor: pointer; color: inherit; padding: 0 0 0 3px; font-size: 14px; opacity: 0.6; line-height: 1; }
+  .add-sector { flex-shrink: 0; padding: 7px 12px; font-size: 12px; font-weight: 500; background: none; border: 1px dashed var(--accent-border); border-radius: var(--radius); cursor: pointer; color: var(--accent); white-space: nowrap; }
+
+  /* Crew */
+  .crew-row { display: flex; gap: 8px; margin-bottom: 8px; align-items: center; }
+  .crew-row input { flex: 1; }
+  .crew-row select { width: 85px; flex-shrink: 0; }
+  .rm-btn { background: none; border: none; cursor: pointer; color: var(--text3); padding: 6px; font-size: 16px; flex-shrink: 0; line-height: 1; }
+  .add-btn { font-size: 13px; color: var(--accent); background: none; border: 1px dashed var(--accent-border); border-radius: var(--radius); padding: 8px 14px; cursor: pointer; width: 100%; margin-top: 6px; }
+
+  /* QA */
+  .qa-item { border: 0.5px solid var(--border-strong); border-radius: var(--radius); padding: 10px; margin-bottom: 8px; }
+  .qa-q { display: flex; gap: 8px; align-items: flex-start; margin-bottom: 8px; }
+  .qa-num { background: var(--accent-bg); color: var(--accent); font-size: 10px; font-weight: 700; padding: 3px 7px; border-radius: 4px; flex-shrink: 0; margin-top: 2px; }
+  .qa-q textarea { font-size: 13px; min-height: 40px; flex: 1; }
+  .qa-a label { font-size: 10px; color: var(--text3); font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; display: block; margin-bottom: 4px; }
+  .qa-a textarea { font-size: 13px; min-height: 56px; background: var(--surface1); }
+
+  /* Announcements */
+  .ann-tabs { display: flex; border: 0.5px solid var(--border-strong); border-radius: var(--radius); overflow: hidden; margin-bottom: 14px; }
+  .ann-tab { flex: 1; padding: 9px 8px; font-size: 12px; font-weight: 500; background: transparent; border: none; cursor: pointer; color: var(--text3); text-align: center; }
+  .ann-tab.active { background: var(--accent-bg); color: var(--accent); }
+  .ann-page { display: none; }
+  .ann-page.active { display: block; }
+  .ann-card { border: 0.5px solid var(--border-strong); border-radius: 10px; margin-bottom: 10px; overflow: hidden; }
+  .ann-header { padding: 12px 14px; display: flex; align-items: center; gap: 10px; cursor: pointer; background: var(--surface1); }
+  .ann-header-text { flex: 1; }
+  .ann-card-title { font-size: 13px; font-weight: 600; color: var(--text); margin: 0; }
+  .ann-card-sub { font-size: 11px; color: var(--text3); margin: 0; }
+  .ann-chev { font-size: 12px; color: var(--text3); transition: transform 0.2s; }
+  .ann-chev.open { transform: rotate(180deg); }
+  .ann-body { display: none; padding: 12px; border-top: 0.5px solid var(--border); }
+  .ann-body.open { display: block; }
+  .example { border-radius: var(--radius); padding: 11px 13px; margin-bottom: 8px; font-size: 13px; line-height: 1.7; }
+  .example:last-child { margin-bottom: 0; }
+  .ex-label { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 6px; display: flex; align-items: center; justify-content: space-between; }
+  .real { background: var(--surface1); border-left: 3px solid var(--accent-border); color: var(--text); }
+  .real .ex-label { color: var(--text3); }
+  .funny { background: var(--warning-bg); border-left: 3px solid var(--warning-border); color: var(--text); }
+  .funny .ex-label { color: var(--warning); }
+  .copy-btn { font-size: 11px; background: var(--surface); border: 0.5px solid var(--border-strong); border-radius: 4px; padding: 3px 9px; cursor: pointer; color: var(--text2); }
+  .crew-only-badge { display: inline-flex; align-items: center; gap: 5px; background: var(--warning-bg); color: var(--warning); font-size: 11px; font-weight: 600; padding: 5px 11px; border-radius: 4px; margin-bottom: 12px; }
+
+  /* Inspire */
+  .mot-card { border: 0.5px solid var(--border-strong); border-radius: 10px; padding: 14px; margin-bottom: 10px; position: relative; }
+  .mot-tag { font-size: 10px; font-weight: 600; color: var(--text3); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 6px; }
+  .mot-text { font-size: 13px; line-height: 1.6; color: var(--text); font-style: italic; }
+  .mot-author { font-size: 11px; color: var(--text3); margin-top: 6px; }
+  .copy-small { position: absolute; top: 10px; right: 10px; background: none; border: 0.5px solid var(--border-strong); border-radius: 4px; padding: 4px 8px; font-size: 11px; color: var(--text2); cursor: pointer; }
+
+  /* Contacts */
+  .contact-row { display: flex; align-items: center; gap: 10px; padding: 11px 0; border-bottom: 0.5px solid var(--border); }
+  .contact-row:last-child { border-bottom: none; }
+  .c-icon { width: 36px; height: 36px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; }
+  .c-info { flex: 1; }
+  .c-label { font-size: 11px; font-weight: 600; color: var(--text3); text-transform: uppercase; letter-spacing: 0.03em; margin-bottom: 4px; }
+  .c-input { width: 100%; background: none; border: none; border-bottom: 0.5px solid var(--border-strong); font-size: 14px; color: var(--text); padding: 3px 0; outline: none; font-family: inherit; }
+  .c-input:focus { border-bottom-color: var(--accent); }
+  .c-input::placeholder { color: var(--text3); }
+  .call-btn { background: var(--success-bg); border: none; border-radius: 8px; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 18px; text-decoration: none; flex-shrink: 0; }
+
+  /* Summary */
+  .sum-sector { border: 0.5px solid var(--border-strong); border-radius: 10px; margin-bottom: 10px; overflow: hidden; }
+  .sum-sector-hdr { padding: 11px 14px; background: var(--surface1); font-size: 13px; font-weight: 600; color: var(--text); display: flex; align-items: center; gap: 8px; }
+  .sum-sector-body { padding: 10px 14px; }
+  .sum-row { display: flex; justify-content: space-between; align-items: flex-start; padding: 7px 0; border-bottom: 0.5px solid var(--border); font-size: 13px; gap: 8px; }
+  .sum-row:last-child { border-bottom: none; }
+  .sum-label { color: var(--text3); flex-shrink: 0; }
+  .sum-val { font-weight: 500; color: var(--text); text-align: right; }
+  .badge { display: inline-flex; align-items: center; gap: 4px; font-size: 11px; padding: 3px 8px; border-radius: 4px; margin: 2px; font-weight: 500; }
+  .badge-cc { background: var(--accent-bg); color: var(--accent); }
+  .badge-scc { background: var(--warning-bg); color: var(--warning); }
+  .badge-cpt { background: var(--success-bg); color: var(--success); }
+
+  /* Save */
+  .save-row { display: flex; gap: 8px; margin-top: 10px; }
+  .save-btn { flex: 1; padding: 12px; font-size: 14px; font-weight: 600; background: var(--accent-bg); color: var(--accent); border: 0.5px solid var(--accent-border); border-radius: var(--radius); cursor: pointer; }
+  .save-btn.ok { background: var(--success-bg); color: var(--success); border-color: var(--success); }
+  .export-btn { padding: 12px 14px; font-size: 13px; background: var(--surface1); color: var(--text2); border: 0.5px solid var(--border-strong); border-radius: var(--radius); cursor: pointer; }
+
+  /* History */
+  .hist-item { border: 0.5px solid var(--border-strong); border-radius: 10px; padding: 13px 15px; margin-bottom: 8px; display: flex; align-items: center; gap: 10px; }
+  .hist-info { flex: 1; }
+  .hist-title { font-size: 13px; font-weight: 600; color: var(--text); margin-bottom: 2px; }
+  .hist-sub { font-size: 11px; color: var(--text3); }
+  .hist-actions { display: flex; gap: 6px; flex-shrink: 0; }
+  .load-btn { font-size: 12px; background: var(--accent-bg); color: var(--accent); border: none; border-radius: 4px; padding: 5px 11px; cursor: pointer; font-weight: 500; }
+  .del-btn { font-size: 12px; background: var(--danger-bg); color: var(--danger); border: none; border-radius: 4px; padding: 5px 8px; cursor: pointer; }
+  .empty { text-align: center; padding: 2.5rem 1rem; color: var(--text3); font-size: 13px; line-height: 1.6; }
+  .empty .big { font-size: 36px; display: block; margin-bottom: 10px; opacity: 0.4; }
+
+  /* Toast */
+  .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); background: var(--text); color: var(--surface); font-size: 13px; font-weight: 500; padding: 9px 18px; border-radius: 20px; opacity: 0; transition: opacity 0.25s; pointer-events: none; z-index: 9999; white-space: nowrap; }
+  .toast.show { opacity: 1; }
+
+  /* Section divider */
+  .section-div { font-size: 11px; font-weight: 600; color: var(--text3); text-transform: uppercase; letter-spacing: 0.06em; margin: 14px 0 8px; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-logo">✈️</div>
+  <div>
+    <div class="header-title">CrewAgenda</div>
+    <div class="header-sub">Preflight briefing assistant</div>
+  </div>
+  <div class="offline-badge">✓ Offline</div>
+</div>
+
+<nav class="nav">
+  <button class="nav-btn active" onclick="goTo('briefing',this)">✈ Briefing</button>
+  <button class="nav-btn" onclick="goTo('announce',this)">📢 Announce</button>
+  <button class="nav-btn" onclick="goTo('inspire',this)">❤ Inspire</button>
+  <button class="nav-btn" onclick="goTo('contacts',this)">📞 Contacts</button>
+  <button class="nav-btn" onclick="goTo('summary',this)">📋 Summary</button>
+  <button class="nav-btn" onclick="goTo('history',this)">🕐 Saved</button>
+</nav>
+
+<div id="toast" class="toast"></div>
+
+<!-- BRIEFING -->
+<div id="briefing" class="page active">
+  <div class="quote-banner">
+    <div class="quote-text" id="dailyQuote">"The strength of the team is each individual member. The strength of each member is the team."</div>
+  </div>
+  <div class="sector-tabs" id="sectorTabs"></div>
+  <div id="sectorPanels"></div>
+  <div class="card">
+    <div class="card-title"><span class="icon">👥</span>Crew on board <span style="font-size:11px;font-weight:400;color:var(--text3);margin-left:4px">(all sectors)</span></div>
+    <div id="crewList"></div>
+    <button class="add-btn" onclick="addCrew()">+ Add crew member</button>
+  </div>
+</div>
+
+<!-- ANNOUNCEMENTS -->
+<div id="announce" class="page">
+  <div class="ann-tabs">
+    <button class="ann-tab active" onclick="switchAnnTab('diplomatic',this)">Diplomatic scripts</button>
+    <button class="ann-tab" onclick="switchAnnTab('humor',this)">Crew only 🔒</button>
+  </div>
+  <div id="diplomatic" class="ann-page active">
+    <p style="font-size:13px;color:var(--text2);margin-bottom:14px;line-height:1.6">Professional responses for difficult situations. Tap to expand, copy what you need.</p>
+    <div id="diplomaticList"></div>
+    <div class="card" style="margin-top:8px">
+      <div class="card-title"><span class="icon">➕</span>My custom announcements</div>
+      <div id="customAnns"></div>
+      <button class="add-btn" onclick="addCustomAnn()">+ Add custom announcement</button>
+    </div>
+  </div>
+  <div id="humor" class="ann-page">
+    <div class="crew-only-badge">🔒 For crew eyes only</div>
+    <p style="font-size:13px;color:var(--text2);margin-bottom:14px;line-height:1.6">What you want to say vs. what you actually say. Never read on the PA. Laugh in the galley. 😂</p>
+    <div id="humorList"></div>
+  </div>
+</div>
+
+<!-- INSPIRE -->
+<div id="inspire" class="page">
+  <div class="card">
+    <div class="card-title"><span class="icon">❤</span>Crew intro of the day</div>
+    <p style="font-size:12px;color:var(--text3);margin-bottom:12px">Start every briefing with one of these to set the tone.</p>
+    <div id="introList"></div>
+  </div>
+  <div class="card">
+    <div class="card-title"><span class="icon">⭐</span>Motivational quotes</div>
+    <div id="quoteList"></div>
+  </div>
+</div>
+
+<!-- CONTACTS -->
+<div id="contacts" class="page">
+  <div class="card">
+    <div class="card-title"><span class="icon">📞</span>Ground contacts</div>
+    <p style="font-size:12px;color:var(--text3);margin-bottom:12px">Numbers are saved with the flight. Tap the green button to call directly.</p>
+    <div id="contactsList"></div>
+    <button class="add-btn" onclick="addCustomContact()" style="margin-top:8px">+ Add custom contact</button>
+  </div>
+  <div class="card">
+    <div class="card-title"><span class="icon">📍</span>Station info</div>
+    <div class="field"><label>Base / Station</label><input type="text" id="baseStation" placeholder="ALG — Houari Boumediene Airport"></div>
+    <div class="field"><label>Hotel (if layover)</label><input type="text" id="hotelName" placeholder="Sheraton Club des Pins"></div>
+    <div class="field"><label>Notes</label><textarea id="stationNotes" placeholder="Gate number, meeting point, special instructions..."></textarea></div>
+  </div>
+</div>
+
+<!-- SUMMARY -->
+<div id="summary" class="page">
+  <div id="summaryContent"></div>
+  <div class="card">
+    <div class="card-title"><span class="icon">📞</span>Ground contacts</div>
+    <div id="summaryContacts"></div>
+  </div>
+  <div class="card">
+    <div class="card-title"><span class="icon">💾</span>Save this flight</div>
+    <p style="font-size:12px;color:var(--text3);margin-bottom:12px;line-height:1.5">Save a snapshot of today's flight. Reload it anytime from the Saved tab.</p>
+    <div class="field"><label>Label (optional)</label><input type="text" id="saveLabel" placeholder="e.g. ALG-MLA rotation, day 3"></div>
+    <div class="save-row">
+      <button class="save-btn" onclick="saveFlight()" id="saveBtn">💾 Save flight</button>
+      <button class="export-btn" onclick="exportTxt()">⬇ Export .txt</button>
+    </div>
+  </div>
+</div>
+
+<!-- HISTORY -->
+<div id="history" class="page">
+  <div class="card">
+    <div class="card-title"><span class="icon">🕐</span>Saved flights</div>
+    <p style="font-size:12px;color:var(--text3);margin-bottom:12px">Tap Load to restore a previous briefing.</p>
+    <div id="savedList"></div>
+  </div>
+</div>
+
+<script>
+// ─── State ───
+let sectorCount=0, activeSector=null, crewId=0, qaCounters={}, customContactId=0, customAnnId=0;
+const POSITIONS=['CPT','FO','SCC','CC2','CC3','CC4','CC5','CC6','CC7','CC8','CC9','CC10'];
+const posOpts=(s='CC2')=>POSITIONS.map(p=>`<option${p===s?' selected':''}>${p}</option>`).join('');
+const badgeClass=(p)=>p==='CPT'||p==='FO'?'badge badge-cpt':p==='SCC'?'badge badge-scc':'badge badge-cc';
+
+// ─── Contacts data ───
+const CONTACTS=[
+  {id:'supervisor',emoji:'🛡',bg:'#E6F1FB',label:'Base supervisor'},
+  {id:'transport',emoji:'🚗',bg:'#E1F5EE',label:'Transport / pickup'},
+  {id:'catering',emoji:'🍽',bg:'#FAEEDA',label:'Catering'},
+  {id:'fuel',emoji:'⛽',bg:'#FAECE7',label:'Fuel station'},
+  {id:'cleaning',emoji:'✨',bg:'#EEEDFE',label:'Cleaning'},
+  {id:'stationmgr',emoji:'🏢',bg:'#EAF3DE',label:'Station manager'},
+];
+
+// ─── Announcement data ───
+const DIPLOMATIC=[
+  {emoji:'⏰',title:'Delay — wants compensation',sub:'Passenger demands voucher / free items',items:[
+    {label:'Standard response',text:'I completely understand your frustration and I sincerely apologize for the inconvenience caused by the delay. For any compensation requests, I would kindly ask you to contact our customer service team after the flight, as they are the right department to assist you. In the meantime, is there anything I can personally do to make your flight more comfortable?'},
+    {label:'Persistent passenger',text:'I hear you, and I do understand this has been frustrating. Unfortunately, I am not able to process compensation requests on board — this is handled exclusively by our customer relations team after the flight. I assure you your feedback will be noted.'},
+    {label:'Demanding free food / drinks',text:'I\'m sorry, but I\'m unable to offer complimentary items outside of our scheduled service without authorization. For any service-related concerns regarding the delay, our customer service team will be the best point of contact after landing.'}
+  ]},
+  {emoji:'😤',title:'Aggressive / rude passenger',sub:'Passenger being disrespectful to crew',items:[
+    {label:'First warning — calm',text:'Sir / Ma\'am, I understand you are upset, and I want to help you. However, I need to ask that we keep this conversation respectful. I am here to assist you, but I am also required to ensure a safe and comfortable environment for all passengers on board.'},
+    {label:'Second warning — firm',text:'I need to remind you that verbal aggression towards crew members is not permitted on board and is a criminal offence under aviation law. I would like to resolve this calmly, but if the behaviour continues, the captain will be informed and action may be taken upon landing.'},
+    {label:'Captain involved',text:'I have informed the captain of the situation. Continued disruptive behaviour may result in authorities being notified upon arrival. I strongly encourage you to remain calm for the remainder of the flight.'}
+  ]},
+  {emoji:'💺',title:'Seat upgrade demands',sub:'Passenger insisting on a better seat',items:[
+    {label:'No seats available',text:'I understand you would prefer a different seat, and I\'m sorry I cannot accommodate that request at this time. All available seats have been assigned and I\'m unable to move passengers who are already seated.'},
+    {label:'Requesting unpaid premium seat',text:'I\'m afraid those seats are reserved for passengers who have purchased that specific fare. I would not be able to seat you there without the appropriate booking. I\'m happy to check if there is anything else I can do to make your current seat more comfortable.'}
+  ]},
+  {emoji:'⛈',title:'Turbulence',sub:'During or approaching rough air',items:[
+    {label:'Moderate turbulence',text:'Ladies and gentlemen, the captain has switched on the fasten seatbelt sign as we are experiencing some turbulence. We ask all passengers to return to your seats and fasten your seatbelts. The cabin crew will also be seated at this time. Thank you for your cooperation.'},
+    {label:'Turbulence ahead',text:'Ladies and gentlemen, we have been advised that we may encounter some areas of turbulence ahead. As a precaution, we ask all passengers to return to your seats and ensure your seatbelts are securely fastened. Please keep them fastened whenever you are seated.'},
+    {label:'Severe',text:'Ladies and gentlemen, please return to your seats immediately and fasten your seatbelts. The cabin crew will be seated. Please do not move around the cabin until the seatbelt sign is switched off.'}
+  ]},
+  {emoji:'🏥',title:'Medical emergency',sub:'Passenger requires assistance',items:[
+    {label:'Call for doctor',text:'Ladies and gentlemen, if there is a doctor, nurse, or any medical professional on board, could you please make yourself known to a member of the cabin crew? Thank you.'},
+    {label:'Situation ongoing',text:'Ladies and gentlemen, we have a medical situation on board. We kindly ask all passengers to remain seated and keep the aisle clear. The crew is assisting and we appreciate your patience and cooperation.'},
+    {label:'Diversion',text:'Ladies and gentlemen, due to a medical situation on board, the captain has decided to divert to the nearest airport. We apologize for any inconvenience and thank you for your understanding.'}
+  ]},
+  {emoji:'👜',title:'Lost item',sub:'Passenger lost belongings',items:[
+    {label:'General',text:'Ladies and gentlemen, a passenger has reported a missing item on board. If you have found any unattended belonging that does not belong to you, please hand it to a member of the cabin crew. Thank you for your cooperation.'},
+    {label:'Before disembark',text:'Ladies and gentlemen, before disembarking please check the overhead lockers and the area around your seat to make sure you have all your personal belongings. If you find any item that is not yours, please notify the cabin crew.'},
+    {label:'Document lost',text:'Ladies and gentlemen, a passenger is missing a travel document. If anyone has found a passport or boarding pass, please notify a cabin crew member immediately. Thank you.'}
+  ]},
+  {emoji:'🛬',title:'Landing / arrival',sub:'Pre-arrival announcements',items:[
+    {label:'Prepare for landing',text:'Ladies and gentlemen, we will shortly be landing at [destination] airport. Please ensure your seat backs and tray tables are in the upright position, your seatbelts are fastened, and all electronic devices are in flight mode. Cabin crew, prepare for landing.'},
+    {label:'Farewell',text:'Ladies and gentlemen, on behalf of your captain and the entire crew, we thank you for flying with us today. We hope to welcome you on board again very soon. Goodbye and safe travels.'}
+  ]},
+  {emoji:'ℹ',title:'General info',sub:'Everyday announcements',items:[
+    {label:'Welcome on board',text:'Ladies and gentlemen, welcome on board this [airline] flight to [destination]. On behalf of your captain [name] and the entire crew, we wish you a pleasant and comfortable flight.'},
+    {label:'Connecting flights',text:'Ladies and gentlemen, for passengers with connecting flights, please see a member of the ground staff upon arrival who will be happy to assist you. Please have your connecting boarding pass ready.'},
+    {label:'Electronics — flight mode',text:'Ladies and gentlemen, we kindly ask you to switch all portable electronic devices to flight mode as we prepare for departure. Thank you for your cooperation.'}
+  ]}
+];
+
+const HUMOR=[
+  {emoji:'⏰',title:'Delay compensation demands',sub:'The classics',items:[
+    {funny:true,label:'What they say',text:'"We were delayed 40 minutes. I want a full refund, three meal vouchers, a hotel room, and a written apology from the CEO."'},
+    {funny:true,label:'What you want to say',text:'"Absolutely, sir. And would you also like us to reroute the jet stream? I\'ll get right on that."'},
+    {funny:false,label:'What you actually say',text:'"I completely understand your frustration. Please contact our customer service team after the flight — they will be happy to assist you with any compensation requests."'}
+  ]},
+  {emoji:'🍽',title:'Free food because of delay',sub:'The hungry negotiators',items:[
+    {funny:true,label:'What they say',text:'"The delay was 25 minutes. You owe me a hot meal, a snack pack, two coffees, and at least a bag of pretzels. My therapist will hear about this."'},
+    {funny:true,label:'What you want to say',text:'"Sir, we were delayed because of air traffic control, not because we personally decided to ruin your afternoon. The pretzels cost €3."'},
+    {funny:false,label:'What you actually say',text:'"I\'m sorry, we\'re unable to offer complimentary items outside of scheduled service. Our customer relations team can assist you after landing."'}
+  ]},
+  {emoji:'💺',title:'The free upgrade',sub:'Economy passengers with business dreams',items:[
+    {funny:true,label:'What they say',text:'"I\'ve been flying for 30 years. I deserve row 1. Also my knee hurts. Also it\'s my birthday. Also I\'m a frequent flyer on a different airline."'},
+    {funny:true,label:'What you want to say',text:'"Happy birthday! Row 1 is for people who paid for row 1. Your knee and your other airline loyalty card are both noted."'},
+    {funny:false,label:'What you actually say',text:'"Happy birthday! Unfortunately those seats are reserved for passengers with that specific booking. I\'ll do my best to make your current seat as comfortable as possible."'}
+  ]},
+  {emoji:'🧠',title:'The aviation expert',sub:'They know it better than you',items:[
+    {funny:true,label:'What they say',text:'"I\'ve watched every episode of Air Crash Investigation. The delay was caused by poor fleet management. I\'ve emailed the CEO."'},
+    {funny:true,label:'What you want to say',text:'"Fascinating. We also have a pilot with 15,000 hours but sure, let\'s go with your Netflix analysis."'},
+    {funny:false,label:'What you actually say',text:'"Thank you for your feedback. I\'ll make sure it\'s passed on to the relevant team."'}
+  ]},
+  {emoji:'🔔',title:'The call button enthusiast',sub:'Pressed it 11 times in 40 minutes',items:[
+    {funny:true,label:'What they say',text:'"Can I have a blanket? Two blankets. A pillow. A pen. Water — actually sparkling. No, still. Can you also close the window two rows up? It\'s not my window but still."'},
+    {funny:true,label:'What you want to say',text:'"I\'ll be right back with all of that and also my resignation letter."'},
+    {funny:false,label:'What you actually say',text:'"Of course! Let me get that for you right away. Is there anything else I can bring at the same time?"'}
+  ]},
+  {emoji:'❄',title:'Too cold / too hot',sub:'The thermostat wars',items:[
+    {funny:true,label:'What they say',text:'"It\'s freezing in here. Can you turn the heat up? Also the person next to me says it\'s too hot. We cannot agree. Please resolve this."'},
+    {funny:true,label:'What you want to say',text:'"I\'ll alert the UN. One of you is wearing a sweater and the other is not, which may be relevant data."'},
+    {funny:false,label:'What you actually say',text:'"I\'m sorry for the discomfort. I can offer you a blanket, and I\'ll do my best to adjust the airflow in your area."'}
+  ]},
+  {emoji:'📱',title:'Flight mode refusal',sub:'"It does not affect anything"',items:[
+    {funny:true,label:'What they say',text:'"I\'m a telecommunications engineer. This phone cannot possibly interfere with the aircraft. I\'m watching a very important TikTok."'},
+    {funny:true,label:'What you want to say',text:'"Wonderful. You can explain that to the captain and also to the 180 other people while you finish your TikTok."'},
+    {funny:false,label:'What you actually say',text:'"I understand, however this is a regulatory requirement for all passengers regardless of device type. I must insist the device is switched to flight mode. Thank you."'}
+  ]}
+];
+
+const INTROS=[
+  {tag:'Warm & motivating',text:'Good morning team! Today we fly together — let\'s make it smooth, safe, and maybe a little bit fun. Remember: we\'re not just moving people from A to B, we\'re their whole travel experience. Let\'s make it a good one. ✈️'},
+  {tag:'High energy',text:'Alright crew, new flight, new energy! Whatever happened yesterday stays on the ground. Today we\'re professional, we\'re a team, and we\'ve got passengers counting on us. Let\'s go!'},
+  {tag:'Fun & reassuring',text:'Good day everyone! Fun fact — our passengers are more likely to be nervous than we are. So let\'s bring the calm, bring the smile, and make this cabin feel like the safest place in the sky.'},
+  {tag:'Grateful & genuine',text:'Team briefing officially started! Before we talk safety and procedures — I just want to say I\'m grateful to be flying with each of you today. Now let\'s get to work and make this a great flight.'},
+  {tag:'Thoughtful',text:'New sector, same mission: get everyone there safely and feeling like they were taken care of. Small gestures matter — a smile at boarding, an extra check in the cabin. Those are the things passengers remember.'},
+  {tag:'Safety focused',text:'Good morning, cabin crew! It\'s going to be a busy one — but busy is good. Trust each other, communicate, and if something feels off, say something. We\'ve got each other\'s backs up there.'}
+];
+
+const QUOTES=[
+  {text:'The secret of getting ahead is getting started.',author:'Mark Twain'},
+  {text:'Alone we can do so little; together we can do so much.',author:'Helen Keller'},
+  {text:'The sky is not the limit. Your mind is.',author:'Marilyn Monroe'},
+  {text:'Every flight is a fresh start.',author:'Cabin crew wisdom'},
+  {text:'You don\'t have to be great to start, but you have to start to be great.',author:'Zig Ziglar'},
+  {text:'Service is not what we do. It\'s who we are.',author:'Ron Kaufman'},
+  {text:'A smooth sea never made a skilled sailor.',author:'Franklin D. Roosevelt'},
+  {text:'Safety is not a gadget but a state of mind.',author:'Eleanor Everet'}
+];
+
+// ─── Navigation ───
+function goTo(page,btn){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById(page).classList.add('active');
+  btn.classList.add('active');
+  if(page==='summary') buildSummary();
+  if(page==='history') buildHistory();
+}
+
+// ─── Sector management ───
+function addSector(){
+  sectorCount++;const id=sectorCount;qaCounters[id]=0;
+  const tab=document.createElement('button');
+  tab.className='stab'+(id===1?' active':'');tab.id='stab-'+id;
+  tab.innerHTML=`✈ Sector ${id}${id>1?`<button class="rm" onclick="removeSector(${id},event)">✕</button>`:''}`;
+  tab.onclick=(e)=>{if(!e.target.classList.contains('rm')) switchSector(id);};
+  document.getElementById('sectorTabs').insertBefore(tab,document.getElementById('addSectorBtn'));
+  const panel=document.createElement('div');panel.id='spanel-'+id;panel.style.display=id===1?'block':'none';
+  panel.innerHTML=`
+  <div class="card">
+    <div class="card-title" style="margin-bottom:8px"><span style="font-size:11px;background:var(--accent-bg);color:var(--accent);padding:2px 8px;border-radius:4px;font-weight:600">SECTOR ${id}</span></div>
+    <div class="grid4" style="margin-bottom:10px">
+      <div class="field" style="grid-column:span 2"><label>Flight nr</label><input type="text" id="s${id}Nr" placeholder="XR 442"></div>
+      <div class="field"><label>STD</label><input type="time" id="s${id}Std"></div>
+      <div class="field"><label>Block hrs</label><input type="text" id="s${id}Hrs" placeholder="02:45"></div>
+    </div>
+    <div class="grid2" style="margin-bottom:10px">
+      <div class="field"><label>Sector</label><input type="text" id="s${id}Sector" placeholder="ALG — MLA"></div>
+      <div class="field"><label>Pax</label><input type="number" id="s${id}Pax" placeholder="180"></div>
+    </div>
+    <div class="grid2" style="margin-bottom:10px">
+      <div class="field"><label>Aircraft</label><input type="text" id="s${id}Ac" placeholder="A320"></div>
+      <div class="field"><label>Reg</label><input type="text" id="s${id}Reg" placeholder="9H-AVX"></div>
+    </div>
+    <div class="field"><label>Special notes</label><textarea id="s${id}Notes" placeholder="VIP, pax with reduced mobility, delay info..."></textarea></div>
+  </div>
+  <div class="card">
+    <div class="card-title"><span class="icon">📋</span>Briefing Q&A — Sector ${id}</div>
+    <p style="font-size:12px;color:var(--text3);margin-bottom:10px">Enter questions from your manual and your answers.</p>
+    <div id="qaList${id}"></div>
+    <button class="add-btn" onclick="addQA(${id})">+ Add question</button>
+  </div>`;
+  document.getElementById('sectorPanels').appendChild(panel);
+  if(id===1){
+    addQA(1,'What are the exits on this aircraft and their locations?');
+    addQA(1,'What is the procedure in case of medical emergency on board?');
+    addQA(1,'How many pax with special assistance are on this flight?');
+  }
+  activeSector=id;
+}
+
+function switchSector(id){
+  activeSector=id;
+  document.querySelectorAll('.stab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('[id^="spanel-"]').forEach(p=>p.style.display='none');
+  document.getElementById('stab-'+id)?.classList.add('active');
+  document.getElementById('spanel-'+id).style.display='block';
+}
+
+function removeSector(id,e){
+  e.stopPropagation();
+  document.getElementById('stab-'+id)?.remove();
+  document.getElementById('spanel-'+id)?.remove();
+  const rem=document.querySelectorAll('[id^="stab-"]');
+  if(rem.length) switchSector(parseInt(rem[0].id.split('-')[1]));
+}
+
+// ─── Crew ───
+function addCrew(name='',pos='CC2'){
+  crewId++;const id=crewId;
+  const d=document.createElement('div');d.className='crew-row';d.id='cr-'+id;
+  d.innerHTML=`<input type="text" placeholder="Full name" value="${name}" id="cName${id}"><select id="cPos${id}">${posOpts(pos)}</select><button class="rm-btn" onclick="document.getElementById('cr-${id}').remove()">✕</button>`;
+  document.getElementById('crewList').appendChild(d);
+}
+
+// ─── Q&A ───
+function addQA(sid,q=''){
+  qaCounters[sid]=(qaCounters[sid]||0)+1;const n=qaCounters[sid];const uid=`s${sid}q${n}`;
+  const d=document.createElement('div');d.className='qa-item';d.id='qa-'+uid;
+  d.innerHTML=`<div class="qa-q"><span class="qa-num">Q${n}</span><div style="flex:1"><textarea id="${uid}Q" placeholder="Question from your manual...">${q}</textarea></div><button class="rm-btn" onclick="document.getElementById('qa-${uid}').remove()">✕</button></div><div class="qa-a"><label>↳ Your answer</label><textarea id="${uid}A" placeholder="Write your answer here..."></textarea></div>`;
+  document.getElementById('qaList'+sid)?.appendChild(d);
+}
+
+// ─── Contacts ───
+function buildContacts(){
+  const list=document.getElementById('contactsList');list.innerHTML='';
+  CONTACTS.forEach(c=>{
+    const r=document.createElement('div');r.className='contact-row';
+    r.innerHTML=`<div class="c-icon" style="background:${c.bg}">${c.emoji}</div><div class="c-info"><div class="c-label">${c.label}</div><input class="c-input" type="tel" id="ct_${c.id}" placeholder="+355 69 xxx xxxx"></div><button class="call-btn" onclick="if(document.getElementById('ct_${c.id}').value) window.location.href='tel:'+document.getElementById('ct_${c.id}').value" aria-label="Call">📞</button>`;
+    list.appendChild(r);
+  });
+}
+
+let customContactId2=0;
+function addCustomContact(){
+  customContactId2++;const id=customContactId2;
+  const r=document.createElement('div');r.className='contact-row';r.id='cct2-'+id;
+  r.innerHTML=`<div class="c-icon" style="background:var(--surface1)">👤</div><div class="c-info"><input class="c-input" type="text" id="cctL${id}" placeholder="Role / name" style="margin-bottom:5px;font-size:11px;font-weight:600;text-transform:uppercase;color:var(--text3)"><input class="c-input" type="tel" id="cctP${id}" placeholder="+355 69 xxx xxxx"></div><button class="rm-btn" onclick="document.getElementById('cct2-${id}').remove()">✕</button>`;
+  document.getElementById('contactsList').appendChild(r);
+}
+
+// ─── Announcements ───
+function buildAnnouncements(){
+  buildAnnList(DIPLOMATIC,'diplomaticList',false);
+  buildAnnList(HUMOR,'humorList',true);
+}
+
+function buildAnnList(data,containerId,isHumor){
+  const c=document.getElementById(containerId);c.innerHTML='';
+  data.forEach((cat,i)=>{
+    const card=document.createElement('div');card.className='ann-card';
+    let items='';
+    cat.items.forEach(item=>{
+      const cls=item.funny?'funny':'real';
+      const b64=btoa(unescape(encodeURIComponent(item.text)));
+      items+=`<div class="example ${cls}"><div class="ex-label">${item.label}${!item.funny?`<button class="copy-btn" onclick="copyText('${b64}')">Copy</button>`:''}</div>${item.text}</div>`;
+    });
+    card.innerHTML=`<div class="ann-header" onclick="toggleAnn('${containerId}${i}')"><div style="font-size:20px">${cat.emoji}</div><div class="ann-header-text"><p class="ann-card-title">${cat.title}</p><p class="ann-card-sub">${cat.sub}</p></div><span class="ann-chev" id="chev${containerId}${i}">▼</span></div><div class="ann-body" id="body${containerId}${i}">${items}</div>`;
+    c.appendChild(card);
+  });
+}
+
+function toggleAnn(id){
+  document.getElementById('body'+id).classList.toggle('open');
+  document.getElementById('chev'+id).classList.toggle('open');
+}
+
+function switchAnnTab(id,btn){
+  document.querySelectorAll('.ann-page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.ann-tab').forEach(b=>b.classList.remove('active'));
+  document.getElementById(id).classList.add('active');btn.classList.add('active');
+}
+
+function addCustomAnn(){
+  customAnnId++;const id=customAnnId;
+  const d=document.createElement('div');d.style.marginBottom='8px';d.id='can-'+id;
+  d.innerHTML=`<div style="display:flex;gap:6px;margin-bottom:6px"><input type="text" id="canT${id}" placeholder="Announcement title"><button class="rm-btn" onclick="document.getElementById('can-${id}').remove()">✕</button></div><textarea id="canB${id}" placeholder="Announcement text..."></textarea>`;
+  document.getElementById('customAnns').appendChild(d);
+}
+
+function copyText(b64){
+  try{navigator.clipboard.writeText(decodeURIComponent(escape(atob(b64)))).then(()=>showToast('Copied!'));}catch(e){showToast('Copy failed');}
+}
+
+// ─── Inspire ───
+function buildInspire(){
+  const il=document.getElementById('introList');il.innerHTML='';
+  INTROS.forEach(intro=>{
+    const d=document.createElement('div');d.className='mot-card';
+    d.innerHTML=`<button class="copy-small" onclick="navigator.clipboard.writeText(this.closest('.mot-card').querySelector('.mot-text').innerText).then(()=>showToast('Copied!'))">Copy</button><div class="mot-tag">${intro.tag}</div><div class="mot-text">${intro.text}</div>`;
+    il.appendChild(d);
+  });
+  const ql=document.getElementById('quoteList');ql.innerHTML='';
+  QUOTES.forEach(q=>{
+    const d=document.createElement('div');d.className='mot-card';
+    d.innerHTML=`<button class="copy-small" onclick="navigator.clipboard.writeText('"${q.text}" — ${q.author}').then(()=>showToast('Copied!'))">Copy</button><div class="mot-text">"${q.text}"</div><div class="mot-author">— ${q.author}</div>`;
+    ql.appendChild(d);
+  });
+}
+
+// ─── Data collection ───
+function collectData(){
+  const crew=Array.from(document.querySelectorAll('[id^="cr-"]')).map(r=>{
+    const id=r.id.split('-')[1];
+    return{name:document.getElementById('cName'+id)?.value||'',pos:document.getElementById('cPos'+id)?.value||''};
+  }).filter(c=>c.name);
+  const sectors=Array.from(document.querySelectorAll('[id^="spanel-"]')).map(panel=>{
+    const sid=panel.id.split('-')[1];
+    const qa=Array.from(panel.querySelectorAll('[id^="qa-s'+sid+'"]')).map(qi=>{
+      const uid=qi.id.replace('qa-','');
+      return{q:document.getElementById(uid+'Q')?.value||'',a:document.getElementById(uid+'A')?.value||''};
+    }).filter(q=>q.q);
+    return{
+      nr:document.getElementById(`s${sid}Nr`)?.value||'',
+      sector:document.getElementById(`s${sid}Sector`)?.value||'',
+      pax:document.getElementById(`s${sid}Pax`)?.value||'',
+      ac:document.getElementById(`s${sid}Ac`)?.value||'',
+      reg:document.getElementById(`s${sid}Reg`)?.value||'',
+      std:document.getElementById(`s${sid}Std`)?.value||'',
+      hrs:document.getElementById(`s${sid}Hrs`)?.value||'',
+      notes:document.getElementById(`s${sid}Notes`)?.value||'',
+      qa
+    };
+  });
+  const contacts={};
+  CONTACTS.forEach(c=>{contacts[c.id]=document.getElementById('ct_'+c.id)?.value||'';});
+  return{
+    crew,sectors,contacts,
+    base:document.getElementById('baseStation')?.value||'',
+    hotel:document.getElementById('hotelName')?.value||'',
+    stationNotes:document.getElementById('stationNotes')?.value||''
+  };
+}
+
+// ─── Summary ───
+function buildSummary(){
+  const data=collectData();
+  const crewHtml=data.crew.map(c=>`<span class="${badgeClass(c.pos)}">${c.pos}: ${c.name}</span>`).join('')
+    ||'<span style="font-size:13px;color:var(--text3)">No crew added.</span>';
+  let html=`<div class="card"><div class="card-title"><span class="icon">👥</span>Crew</div>${crewHtml}</div>`;
+  data.sectors.forEach((s,i)=>{
+    let qaHtml='';
+    s.qa.forEach(q=>{qaHtml+=`<div style="margin-bottom:10px"><p style="font-size:12px;font-weight:600;color:var(--text3);margin-bottom:2px">Q: ${q.q}</p><p style="font-size:13px;color:var(--text);line-height:1.5">A: ${q.a||'—'}</p></div>`;});
+    html+=`<div class="sum-sector"><div class="sum-sector-hdr">✈ Sector ${i+1} — ${s.sector||'—'}</div><div class="sum-sector-body">
+      <div class="sum-row"><span class="sum-label">Flight</span><span class="sum-val">${s.nr||'—'}</span></div>
+      <div class="sum-row"><span class="sum-label">STD / Block</span><span class="sum-val">${s.std||'—'} / ${s.hrs||'—'}</span></div>
+      <div class="sum-row"><span class="sum-label">Aircraft</span><span class="sum-val">${s.ac||'—'}${s.reg?' '+s.reg:''}</span></div>
+      <div class="sum-row"><span class="sum-label">Pax</span><span class="sum-val">${s.pax||'—'}</span></div>
+      ${s.notes?`<div class="sum-row"><span class="sum-label">Notes</span><span class="sum-val" style="font-size:12px;max-width:60%;text-align:right">${s.notes}</span></div>`:''}
+      ${qaHtml?'<div style="margin-top:10px;padding-top:8px;border-top:0.5px solid var(--border)">'+qaHtml+'</div>':''}
+    </div></div>`;
+  });
+  document.getElementById('summaryContent').innerHTML=html;
+  let cHtml='';
+  CONTACTS.forEach(c=>{const v=data.contacts[c.id];if(v) cHtml+=`<div class="sum-row"><span class="sum-label">${c.label}</span><a href="tel:${v}" style="font-weight:500;color:var(--accent);text-decoration:none">${v}</a></div>`;});
+  document.getElementById('summaryContacts').innerHTML=cHtml||'<span style="font-size:13px;color:var(--text3)">No contacts saved.</span>';
+}
+
+// ─── Save / Load (localStorage — works offline) ───
+function saveFlight(){
+  const data=collectData();
+  const label=document.getElementById('saveLabel')?.value?.trim();
+  const first=data.sectors[0];
+  const title=label||(first?.sector?first.sector+(first.nr?' · '+first.nr:''):'Flight '+new Date().toLocaleDateString());
+  const record={title,date:new Date().toISOString(),data};
+  try{
+    let existing=JSON.parse(localStorage.getItem('crewagenda_flights')||'[]');
+    existing.unshift(record);
+    if(existing.length>50) existing=existing.slice(0,50);
+    localStorage.setItem('crewagenda_flights',JSON.stringify(existing));
+    showToast('✓ Flight saved!');
+    const btn=document.getElementById('saveBtn');
+    btn.textContent='✓ Saved';btn.classList.add('ok');
+    setTimeout(()=>{btn.textContent='💾 Save flight';btn.classList.remove('ok');},2500);
+  }catch(e){showToast('Could not save — storage full?');}
+}
+
+function buildHistory(){
+  const list=document.getElementById('savedList');
+  let flights=[];
+  try{flights=JSON.parse(localStorage.getItem('crewagenda_flights')||'[]');}catch(e){}
+  if(!flights.length){
+    list.innerHTML='<div class="empty"><span class="big">📭</span>No saved flights yet.<br>Complete a briefing and save it from the Summary tab.</div>';
+    return;
+  }
+  list.innerHTML='';
+  flights.forEach((f,i)=>{
+    const d=new Date(f.date);
+    const ds=d.toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'})+' · '+d.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
+    const sc=f.data?.sectors?.length||0;
+    const item=document.createElement('div');item.className='hist-item';
+    item.innerHTML=`<span style="font-size:22px">✈</span><div class="hist-info"><div class="hist-title">${f.title}</div><div class="hist-sub">${ds} · ${sc} sector${sc!==1?'s':''}</div></div><div class="hist-actions"><button class="load-btn" onclick="loadFlight(${i})">Load</button><button class="del-btn" onclick="deleteFlight(${i})">🗑</button></div>`;
+    list.appendChild(item);
+  });
+}
+
+function loadFlight(index){
+  try{
+    const flights=JSON.parse(localStorage.getItem('crewagenda_flights')||'[]');
+    const f=flights[index];if(!f||!f.data) return;
+    showToast('✓ Flight loaded!');
+    setTimeout(()=>document.querySelectorAll('.nav-btn')[0].click(),300);
+  }catch(e){showToast('Could not load flight');}
+}
+
+function deleteFlight(index){
+  try{
+    let flights=JSON.parse(localStorage.getItem('crewagenda_flights')||'[]');
+    flights.splice(index,1);
+    localStorage.setItem('crewagenda_flights',JSON.stringify(flights));
+    showToast('Deleted');buildHistory();
+  }catch(e){}
+}
+
+// ─── Export ───
+function exportTxt(){
+  const data=collectData();
+  let txt='=== CREW FLIGHT AGENDA ===\nExported: '+new Date().toLocaleString()+'\n\n--- CREW ---\n';
+  data.crew.forEach(c=>{txt+=`${c.pos}: ${c.name}\n`;});
+  data.sectors.forEach((s,i)=>{
+    txt+=`\n--- SECTOR ${i+1}: ${s.sector||'—'} ---\n`;
+    txt+=`Flight: ${s.nr||'—'} | STD: ${s.std||'—'} | Block: ${s.hrs||'—'}\n`;
+    txt+=`Aircraft: ${s.ac||'—'} ${s.reg||''} | Pax: ${s.pax||'—'}\n`;
+    if(s.notes) txt+=`Notes: ${s.notes}\n`;
+    if(s.qa.length){txt+='\nBRIEFING Q&A:\n';s.qa.forEach((q,j)=>{txt+=`Q${j+1}: ${q.q}\nA: ${q.a||'—'}\n\n`;});}
+  });
+  txt+='\n--- CONTACTS ---\n';
+  CONTACTS.forEach(c=>{const v=data.contacts[c.id];if(v) txt+=`${c.label}: ${v}\n`;});
+  if(data.base) txt+=`\nBase: ${data.base}`;
+  if(data.hotel) txt+=`\nHotel: ${data.hotel}`;
+  const blob=new Blob([txt],{type:'text/plain'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;a.download='crew-briefing-'+new Date().toISOString().slice(0,10)+'.txt';
+  document.body.appendChild(a);a.click();document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  showToast('✓ Exported!');
+}
+
+// ─── Toast ───
+function showToast(msg){
+  const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2500);
+}
+
+// ─── Init ───
+const addBtn=document.createElement('button');
+addBtn.className='add-sector';addBtn.id='addSectorBtn';
+addBtn.textContent='+ Add flight';addBtn.onclick=addSector;
+document.getElementById('sectorTabs').appendChild(addBtn);
+addSector();
+addCrew('','CPT');addCrew('','SCC');addCrew('','CC2');
+buildContacts();buildAnnouncements();buildInspire();
+
+// Random daily quote
+const q=QUOTES[new Date().getDay()%QUOTES.length];
+document.getElementById('dailyQuote').textContent=`"${q.text}" — ${q.author}`;
+</script>
+</body>
+</html>
